@@ -4,7 +4,8 @@ import {
   getConfigPath,
   getVendorApiKey,
   getModelByAlias,
-  getDefaultConfig
+  getDefaultConfig,
+  getPromptodexApiKey
 } from '../utils/config.js';
 import type { PodConfig } from '../utils/config.js';
 import os from 'os';
@@ -69,5 +70,34 @@ describe('getDefaultConfig', () => {
     expect(config).toHaveProperty('models');
     expect(config.vendors).toHaveProperty('openai');
     expect(config.vendors).toHaveProperty('anthropic');
+  });
+});
+
+describe('getPromptodexApiKey', () => {
+  it('should return API key when set', () => {
+    const config: PodConfig = {
+      apiKey: 'promptodex-key-123',
+      vendors: {},
+      models: {}
+    };
+    expect(getPromptodexApiKey(config)).toBe('promptodex-key-123');
+  });
+
+  it('should return null when not set', () => {
+    const config: PodConfig = {
+      vendors: {},
+      models: {}
+    };
+    expect(getPromptodexApiKey(config)).toBeNull();
+  });
+
+  it('should return null for empty string', () => {
+    const config: PodConfig = {
+      apiKey: '',
+      vendors: {},
+      models: {}
+    };
+    // Empty string is falsy, so should return null
+    expect(getPromptodexApiKey(config)).toBeNull();
   });
 });

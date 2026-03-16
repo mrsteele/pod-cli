@@ -61,6 +61,7 @@ User config: `~/.pod/config.json`
 
 ```json
 {
+  "apiKey": "promptodex-api-key",
   "defaultModel": "4.1",
   "vendors": {
     "openai": { "apiKey": "sk-xxx" },
@@ -76,6 +77,8 @@ User config: `~/.pod/config.json`
   }
 }
 ```
+
+The `apiKey` at the root level is optional and used to authenticate with promptodex.com to access private prompts.
 
 ## Commands
 

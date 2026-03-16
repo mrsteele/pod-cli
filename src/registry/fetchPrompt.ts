@@ -40,21 +40,29 @@ export interface RegistryPrompt {
  * 
  * @param slug The prompt slug to fetch
  * @param version Optional specific version to fetch
+ * @param apiKey Optional Promptodex API key for accessing private prompts
  * @returns The prompt data from the registry
  */
-export async function fetchPromptFromRegistry(slug: string, version?: number): Promise<RegistryPrompt> {
+export async function fetchPromptFromRegistry(slug: string, version?: number, apiKey?: string): Promise<RegistryPrompt> {
   let url = `${REGISTRY_BASE_URL}/prompts/${encodeURIComponent(slug)}`;
   
   // If version specified, add it to the path
   if (version !== undefined) {
     url = `${REGISTRY_BASE_URL}/prompts/${encodeURIComponent(slug)}/${version}`;
   }
+
+  const headers: Record<string, string> = {
+    'Accept': 'application/json',
+    'User-Agent': 'pod-cli'
+  };
+
+  // Add Authorization header if API key is provided
+  if (apiKey) {
+    headers['Authorization'] = `Bearer ${apiKey}`;
+  }
   
   const response = await fetch(url, {
-    headers: {
-      'Accept': 'application/json',
-      'User-Agent': 'pod-cli'
-    },
+    headers,
     signal: AbortSignal.timeout(10000) // 10 second timeout
   });
 
@@ -72,6 +80,12 @@ export async function fetchPromptFromRegistry(slug: string, version?: number): P
   return data;
 }
 
+export interface FetchPromptOptions {
+  version?: number;
+  forceRefresh?: boolean;
+  apiKey?: string;
+}
+
 /**
  * Fetch a prompt, using cache when available
  * 
@@ -82,17 +96,17 @@ export async function fetchPromptFromRegistry(slug: string, version?: number): P
  * 4. If not cached, use fetched data and cache it
  * 
  * @param slug The prompt slug to fetch
- * @param version Optional specific version to fetch
- * @param forceRefresh Skip cache and always fetch from registry
+ * @param options Fetch options including version, forceRefresh, and apiKey
  * @returns The prompt data
  */
 export async function fetchPrompt(
   slug: string,
-  version?: number,
-  forceRefresh = false
+  options: FetchPromptOptions = {}
 ): Promise<CachedPrompt> {
+  const { version, forceRefresh = false, apiKey } = options;
+  
   // Always fetch from registry first to check version
-  const registryPrompt = await fetchPromptFromRegistry(slug, version);
+  const registryPrompt = await fetchPromptFromRegistry(slug, version, apiKey);
   
   // Check cache (unless force refresh)
   if (!forceRefresh) {

@@ -38,6 +38,7 @@ Or create a config file manually at `~/.pod/config.json`:
 
 ```json
 {
+  "apiKey": "your-promptodex-api-key",
   "defaultModel": "4.1",
   "vendors": {
     "openai": {
@@ -157,6 +158,7 @@ The config file is located at `~/.pod/config.json`.
 
 ```json
 {
+  "apiKey": "your-promptodex-api-key",
   "defaultModel": "4.1",
   "vendors": {
     "openai": {
@@ -197,6 +199,7 @@ The config file is located at `~/.pod/config.json`.
 
 | Field | Description |
 |-------|-------------|
+| `apiKey` | (Optional) Promptodex API key for accessing private prompts |
 | `defaultModel` | The model alias to use when no model is specified |
 | `vendors` | API keys for each AI provider |
 | `models` | Model aliases mapping to vendor and model ID |

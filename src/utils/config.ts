@@ -19,6 +19,7 @@ export interface ModelConfig {
 }
 
 export interface PodConfig {
+  apiKey?: string; // Promptodex API key for accessing private prompts
   defaultModel?: string;
   vendors: Record<string, VendorConfig>;
   models: Record<string, ModelConfig>;
@@ -71,6 +72,14 @@ export async function loadConfig(): Promise<PodConfig | null> {
 export function getVendorApiKey(config: PodConfig, vendor: string): string | null {
   const vendorConfig = config.vendors[vendor];
   return vendorConfig?.apiKey ?? null;
+}
+
+/**
+ * Get Promptodex API key for accessing private prompts
+ * Returns null if not set or empty
+ */
+export function getPromptodexApiKey(config: PodConfig): string | null {
+  return config.apiKey || null;
 }
 
 /**

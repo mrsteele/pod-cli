@@ -1,6 +1,6 @@
 {
   "name": "pod-cli",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "CLI for Promptodex - fetch, render, and execute prompts from the Promptodex registry",
   "type": "module",
   "main": "dist/index.js",

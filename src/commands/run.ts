@@ -4,7 +4,7 @@
  */
 
 import chalk from 'chalk';
-import { loadConfig, PodConfig } from '../utils/config.js';
+import { loadConfig, getPromptodexApiKey, PodConfig } from '../utils/config.js';
 import { fetchPrompt } from '../registry/fetchPrompt.js';
 import { renderPrompt, getMissingVariables } from '../utils/renderPrompt.js';
 import { hasStdin, readStdin, buildPromptContent } from '../utils/parseArgs.js';
@@ -85,7 +85,10 @@ export async function run(options: RunOptions): Promise<void> {
 
   let prompt;
   try {
-    prompt = await fetchPrompt(slug, version);
+    prompt = await fetchPrompt(slug, {
+      version,
+      apiKey: getPromptodexApiKey(config) ?? undefined
+    });
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(chalk.red(`Error fetching prompt: ${message}`));
