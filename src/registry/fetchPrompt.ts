@@ -5,7 +5,7 @@
 
 import { getCachedPrompt, cachePrompt, CachedPrompt } from '../utils/cache.js';
 
-const REGISTRY_BASE_URL = 'https://promptodex.com/api/v1';
+const REGISTRY_BASE_URL = 'https://www.promptodex.com/api/v1';
 
 export interface PromptModel {
   id: string;
