@@ -9,6 +9,7 @@ import chalk from 'chalk';
 import { run } from './commands/run.js';
 import { config } from './commands/config.js';
 import { doctor } from './commands/doctor.js';
+import { init } from './commands/init.js';
 import { parseArgs } from './utils/parseArgs.js';
 import { getCurrentVersion } from './utils/checkVersion.js';
 
@@ -19,7 +20,7 @@ async function main(): Promise<void> {
 
   program
     .name('pod')
-    .description('Promptodex CLI - Fetch and execute prompts from the registry')
+    .description('Promptodex CLI - Fetch and execute prompts from the registry\n\nUsage:\n  pod <slug>           Execute latest version of a prompt\n  pod <slug>@<version> Execute a specific version (e.g., pod summarize@2)')
     .version(version);
 
   // Config command
@@ -50,8 +51,23 @@ async function main(): Promise<void> {
       }
     });
 
+  // Init command
+  program
+    .command('init')
+    .description('Interactive setup wizard to configure the CLI')
+    .action(async () => {
+      try {
+        await init();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`Error: ${message}`));
+        process.exit(1);
+      }
+    });
+
   // Handle unknown commands as prompt slugs
   // This allows `pod summarize` instead of `pod run summarize`
+  // Supports versioning: `pod summarize@2` fetches version 2
   program
     .arguments('[slug] [args...]')
     .option('-m, --model <alias>', 'Override the model to use')
@@ -64,7 +80,7 @@ async function main(): Promise<void> {
       }
 
       // Skip if it's a known command
-      const knownCommands = ['config', 'doctor', 'help'];
+      const knownCommands = ['config', 'doctor', 'init', 'help'];
       if (knownCommands.includes(slug)) {
         return;
       }
@@ -77,6 +93,7 @@ async function main(): Promise<void> {
 
         await run({
           slug: parsed.slug,
+          version: parsed.version,
           variables: parsed.variables,
           model: parsed.model ?? options?.model,
           verbose: options?.verbose

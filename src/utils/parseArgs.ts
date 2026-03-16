@@ -5,8 +5,31 @@
 
 export interface ParsedArgs {
   slug: string;
+  version?: number;
   variables: Record<string, string>;
   model?: string;
+}
+
+/**
+ * Parse version from slug (e.g., "summary@2" -> { slug: "summary", version: 2 })
+ */
+export function parseSlugVersion(slugWithVersion: string): { slug: string; version?: number } {
+  const atIndex = slugWithVersion.lastIndexOf('@');
+  
+  if (atIndex === -1 || atIndex === 0) {
+    return { slug: slugWithVersion };
+  }
+  
+  const slug = slugWithVersion.slice(0, atIndex);
+  const versionStr = slugWithVersion.slice(atIndex + 1);
+  const version = parseInt(versionStr, 10);
+  
+  if (isNaN(version) || version < 1) {
+    // Not a valid version number, treat the whole thing as the slug
+    return { slug: slugWithVersion };
+  }
+  
+  return { slug, version };
 }
 
 /**
@@ -24,7 +47,7 @@ export function parseArgs(args: string[]): ParsedArgs {
     throw new Error('No prompt slug provided');
   }
 
-  const slug = args[0];
+  const { slug, version } = parseSlugVersion(args[0]);
   const variables: Record<string, string> = {};
   let model: string | undefined;
 
@@ -65,6 +88,7 @@ export function parseArgs(args: string[]): ParsedArgs {
 
   return {
     slug,
+    version,
     variables,
     model
   };

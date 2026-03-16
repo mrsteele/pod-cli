@@ -2,13 +2,17 @@
 
 The official CLI for prompts registered on [Promptodex](https://promptodex.com) - a prompt registry where prompts are stored and versioned.
 
+> **Alias:** You can also use `promptodex` instead of `pod` if there's a naming conflict on your system.
+
 ## Features
 
 - **Fetch prompts** from the Promptodex registry
+- **Version support** - fetch specific versions with `@version` syntax
 - **Render templates** with variables
 - **Execute prompts** against configured AI models
 - **Print output** to stdout
 - **Cache prompts** locally for faster access
+- **Interactive setup** wizard for easy configuration
 
 ## Installation
 
@@ -24,7 +28,13 @@ npx pod-cli summarize
 
 ## Quick Start
 
-1. Create a config file at `~/.pod/config.json`:
+1. Run the setup wizard:
+
+```bash
+pod init
+```
+
+Or create a config file manually at `~/.pod/config.json`:
 
 ```json
 {
@@ -35,6 +45,9 @@ npx pod-cli summarize
     },
     "anthropic": {
       "apiKey": "sk-your-anthropic-key"
+    },
+    "localhost": {
+      "port": 11434
     }
   },
   "models": {
@@ -45,6 +58,10 @@ npx pod-cli summarize
     "sonnet": {
       "vendor": "anthropic",
       "model": "claude-sonnet-4"
+    },
+    "llama": {
+      "vendor": "localhost",
+      "model": "llama3.2"
     }
   }
 }
@@ -69,6 +86,16 @@ Example:
 ```bash
 pod summarize
 ```
+
+### Fetch a specific version
+
+Prompts on Promptodex are versioned. Fetch a specific version using `@version` syntax:
+
+```bash
+pod summarize@2
+```
+
+This fetches version 2 of the "summarize" prompt. Without `@version`, the latest version is fetched.
 
 ### Pass variables
 
@@ -112,6 +139,16 @@ pod config
 pod doctor
 ```
 
+### Interactive setup
+
+Run the setup wizard to configure your vendors and models:
+
+```bash
+pod init
+```
+
+This will walk you through selecting a vendor, entering API keys (or port for localhost), and choosing a default model.
+
 ## Configuration
 
 The config file is located at `~/.pod/config.json`.
@@ -127,6 +164,12 @@ The config file is located at `~/.pod/config.json`.
     },
     "anthropic": {
       "apiKey": "sk-xxx"
+    },
+    "xai": {
+      "apiKey": "xai-xxx"
+    },
+    "localhost": {
+      "port": 11434
     }
   },
   "models": {
@@ -137,6 +180,14 @@ The config file is located at `~/.pod/config.json`.
     "sonnet": {
       "vendor": "anthropic",
       "model": "claude-sonnet-4"
+    },
+    "grok": {
+      "vendor": "xai",
+      "model": "grok-3"
+    },
+    "llama": {
+      "vendor": "localhost",
+      "model": "llama3.2"
     }
   }
 }
@@ -158,7 +209,7 @@ The config file is located at `~/.pod/config.json`.
 
 ## Commands
 
-### `pod <slug>`
+### `pod <slug>` or `pod <slug>@<version>`
 
 Fetch and execute a prompt from the registry.
 
@@ -166,6 +217,21 @@ Options:
 - `--model <alias>` - Override the model to use
 - `--<variable> <value>` - Set template variables
 - `-v, --verbose` - Show verbose output
+
+Examples:
+```bash
+pod summarize                    # Latest version
+pod summarize@2                  # Specific version
+pod summarize --model sonnet     # Override model
+pod summarize --topic "AI"       # Pass variables
+```
+
+### `pod init`
+
+Interactive setup wizard to configure:
+- Preferred AI vendor (OpenAI, Anthropic, xAI, localhost)
+- API key or port
+- Default model
 
 ### `pod config`
 
@@ -215,8 +281,10 @@ The CLI checks the registry for the latest version and uses the cache if the ver
 
 ## Supported Providers
 
-- **OpenAI** - GPT-4, GPT-4o, etc.
-- **Anthropic** - Claude 3, Claude Sonnet, etc.
+- **OpenAI** - GPT-4.1, GPT-4o, o1, etc.
+- **Anthropic** - Claude Sonnet 4, Claude Opus 4, Claude 3.5, etc.
+- **xAI** - Grok-3, Grok-2, etc.
+- **Localhost** - Ollama, LMStudio, or any OpenAI-compatible local server
 
 ## Development
 

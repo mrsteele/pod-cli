@@ -14,6 +14,7 @@ import { checkVersion, formatOutdatedWarning } from '../utils/checkVersion.js';
 
 export interface RunOptions {
   slug: string;
+  version?: number;
   variables: Record<string, string>;
   model?: string;
   verbose?: boolean;
@@ -32,7 +33,7 @@ export interface RunOptions {
  * 7. Print response
  */
 export async function run(options: RunOptions): Promise<void> {
-  const { slug, variables, model: modelOverride, verbose } = options;
+  const { slug, version, variables, model: modelOverride, verbose } = options;
 
   // Check for CLI updates (async, non-blocking)
   checkVersion().then(result => {
@@ -77,13 +78,14 @@ export async function run(options: RunOptions): Promise<void> {
   }
 
   // Fetch prompt from registry
+  const slugDisplay = version ? `${slug}@${version}` : slug;
   if (verbose) {
-    console.error(chalk.dim(`Fetching prompt: ${slug}`));
+    console.error(chalk.dim(`Fetching prompt: ${slugDisplay}`));
   }
 
   let prompt;
   try {
-    prompt = await fetchPrompt(slug);
+    prompt = await fetchPrompt(slug, version);
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(chalk.red(`Error fetching prompt: ${message}`));

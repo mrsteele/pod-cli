@@ -39,10 +39,16 @@ export interface RegistryPrompt {
  * Fetch a prompt from the Promptodex registry
  * 
  * @param slug The prompt slug to fetch
+ * @param version Optional specific version to fetch
  * @returns The prompt data from the registry
  */
-export async function fetchPromptFromRegistry(slug: string): Promise<RegistryPrompt> {
-  const url = `${REGISTRY_BASE_URL}/prompts/${encodeURIComponent(slug)}`;
+export async function fetchPromptFromRegistry(slug: string, version?: number): Promise<RegistryPrompt> {
+  let url = `${REGISTRY_BASE_URL}/prompts/${encodeURIComponent(slug)}`;
+  
+  // If version specified, add it to the path
+  if (version !== undefined) {
+    url = `${REGISTRY_BASE_URL}/prompts/${encodeURIComponent(slug)}/${version}`;
+  }
   
   const response = await fetch(url, {
     headers: {
@@ -54,6 +60,9 @@ export async function fetchPromptFromRegistry(slug: string): Promise<RegistryPro
 
   if (!response.ok) {
     if (response.status === 404) {
+      if (version !== undefined) {
+        throw new Error(`Prompt not found: ${slug}@${version}`);
+      }
       throw new Error(`Prompt not found: ${slug}`);
     }
     throw new Error(`Failed to fetch prompt: ${response.status} ${response.statusText}`);
@@ -73,15 +82,17 @@ export async function fetchPromptFromRegistry(slug: string): Promise<RegistryPro
  * 4. If not cached, use fetched data and cache it
  * 
  * @param slug The prompt slug to fetch
+ * @param version Optional specific version to fetch
  * @param forceRefresh Skip cache and always fetch from registry
  * @returns The prompt data
  */
 export async function fetchPrompt(
   slug: string,
+  version?: number,
   forceRefresh = false
 ): Promise<CachedPrompt> {
   // Always fetch from registry first to check version
-  const registryPrompt = await fetchPromptFromRegistry(slug);
+  const registryPrompt = await fetchPromptFromRegistry(slug, version);
   
   // Check cache (unless force refresh)
   if (!forceRefresh) {

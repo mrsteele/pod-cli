@@ -6,11 +6,15 @@ const mockConfig: PodConfig = {
   defaultModel: '4.1',
   vendors: {
     openai: { apiKey: 'sk-openai-test' },
-    anthropic: { apiKey: 'sk-anthropic-test' }
+    anthropic: { apiKey: 'sk-anthropic-test' },
+    xai: { apiKey: 'xai-test-key' },
+    localhost: { port: 11434 }
   },
   models: {
     '4.1': { vendor: 'openai', model: 'gpt-4.1' },
-    'sonnet': { vendor: 'anthropic', model: 'claude-sonnet-4' }
+    'sonnet': { vendor: 'anthropic', model: 'claude-sonnet-4' },
+    'grok': { vendor: 'xai', model: 'grok-3' },
+    'llama': { vendor: 'localhost', model: 'llama3.2' }
   }
 };
 
@@ -33,6 +37,30 @@ describe('resolveModel', () => {
     const result = resolveModel(mockConfig);
     expect(result.vendor).toBe('openai');
     expect(result.model).toBe('gpt-4.1');
+  });
+
+  it('should resolve xai model', () => {
+    const result = resolveModel(mockConfig, 'grok');
+    expect(result.vendor).toBe('xai');
+    expect(result.model).toBe('grok-3');
+    expect(result.apiKey).toBe('xai-test-key');
+  });
+
+  it('should resolve localhost model with port', () => {
+    const result = resolveModel(mockConfig, 'llama');
+    expect(result.vendor).toBe('localhost');
+    expect(result.model).toBe('llama3.2');
+    expect(result.port).toBe(11434);
+    expect(result.apiKey).toBeUndefined();
+  });
+
+  it('should throw when localhost has no port', () => {
+    const configNoPort: PodConfig = {
+      defaultModel: 'llama',
+      vendors: { localhost: {} },
+      models: { 'llama': { vendor: 'localhost', model: 'llama3.2' } }
+    };
+    expect(() => resolveModel(configNoPort)).toThrow('No port configured for localhost vendor');
   });
 
   it('should throw for unknown model alias', () => {
@@ -84,6 +112,14 @@ describe('isVendorSupported', () => {
     expect(isVendorSupported('anthropic')).toBe(true);
   });
 
+  it('should return true for xai', () => {
+    expect(isVendorSupported('xai')).toBe(true);
+  });
+
+  it('should return true for localhost', () => {
+    expect(isVendorSupported('localhost')).toBe(true);
+  });
+
   it('should return false for unknown vendor', () => {
     expect(isVendorSupported('unknown')).toBe(false);
   });
@@ -91,5 +127,6 @@ describe('isVendorSupported', () => {
   it('should be case insensitive', () => {
     expect(isVendorSupported('OpenAI')).toBe(true);
     expect(isVendorSupported('ANTHROPIC')).toBe(true);
+    expect(isVendorSupported('LOCALHOST')).toBe(true);
   });
 });

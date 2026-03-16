@@ -8,7 +8,9 @@ import path from 'path';
 import os from 'os';
 
 export interface VendorConfig {
-  apiKey: string;
+  apiKey?: string;
+  port?: number;
+  host?: string;
 }
 
 export interface ModelConfig {
@@ -72,6 +74,13 @@ export function getVendorApiKey(config: PodConfig, vendor: string): string | nul
 }
 
 /**
+ * Get vendor configuration (including port for localhost)
+ */
+export function getVendorConfig(config: PodConfig, vendor: string): VendorConfig | null {
+  return config.vendors[vendor] ?? null;
+}
+
+/**
  * Get model configuration by alias
  */
 export function getModelByAlias(config: PodConfig, alias: string): ModelConfig | null {
@@ -83,13 +92,16 @@ export function getModelByAlias(config: PodConfig, alias: string): ModelConfig |
  */
 export function getDefaultConfig(): PodConfig {
   return {
-    defaultModel: undefined,
+    defaultModel: '4.1',
     vendors: {
       openai: {
         apiKey: ''
       },
       anthropic: {
         apiKey: ''
+      },
+      localhost: {
+        port: 11434
       }
     },
     models: {
@@ -100,6 +112,10 @@ export function getDefaultConfig(): PodConfig {
       'sonnet': {
         vendor: 'anthropic',
         model: 'claude-sonnet-4'
+      },
+      'llama': {
+        vendor: 'localhost',
+        model: 'llama3.2'
       }
     }
   };

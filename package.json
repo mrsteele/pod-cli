@@ -1,6 +1,6 @@
 {
   "name": "pod-cli",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "CLI for Promptodex - fetch, render, and execute prompts from the Promptodex registry",
   "type": "module",
   "main": "dist/index.js",
@@ -13,7 +13,8 @@
     "dev": "tsc --watch",
     "test": "vitest run",
     "test:watch": "vitest",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "postinstall": "node bin/postinstall.js || true"
   },
   "keywords": [
     "promptodex",

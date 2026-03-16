@@ -3,12 +3,14 @@
  * Handles resolving model configuration from various sources
  */
 
-import { PodConfig, getModelByAlias, getVendorApiKey } from './config.js';
+import { PodConfig, getModelByAlias, getVendorApiKey, getVendorConfig } from './config.js';
 
 export interface ResolvedModel {
   vendor: string;
   model: string;
-  apiKey: string;
+  apiKey?: string;
+  port?: number;
+  host?: string;
 }
 
 export interface PromptModel {
@@ -70,8 +72,24 @@ export function resolveModel(
     throw new Error('No model specified and no default model configured');
   }
 
-  // Get API key for the vendor
-  const apiKey = getVendorApiKey(config, vendor);
+  // Get vendor configuration
+  const vendorConfig = getVendorConfig(config, vendor);
+  
+  // Localhost vendors don't require API keys, but need a port
+  if (vendor === 'localhost') {
+    if (!vendorConfig?.port) {
+      throw new Error(`No port configured for localhost vendor. Add port in vendors.localhost config.`);
+    }
+    return {
+      vendor,
+      model,
+      port: vendorConfig.port,
+      host: vendorConfig.host || 'localhost'
+    };
+  }
+  
+  // Other vendors require API keys
+  const apiKey = vendorConfig?.apiKey;
   
   if (!apiKey) {
     throw new Error(`No API key configured for vendor: ${vendor}`);
@@ -95,6 +113,6 @@ export function getModelDisplayName(resolved: ResolvedModel): string {
  * Check if a vendor is supported
  */
 export function isVendorSupported(vendor: string): boolean {
-  const supportedVendors = ['openai', 'anthropic'];
+  const supportedVendors = ['openai', 'anthropic', 'xai', 'localhost'];
   return supportedVendors.includes(vendor.toLowerCase());
 }

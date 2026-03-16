@@ -4,10 +4,11 @@
  */
 
 import chalk from 'chalk';
-import { configExists, getConfigPath, loadConfig } from '../utils/config.js';
+import { configExists, getConfigPath, loadConfig, getVendorConfig } from '../utils/config.js';
 import { isCacheWritable, getCacheDir } from '../utils/cache.js';
 import { isRegistryReachable, getRegistryUrl } from '../registry/fetchPrompt.js';
 import { getCurrentVersion } from '../utils/checkVersion.js';
+import { isReachable as isLocalhostReachable } from '../ai/localhost.js';
 
 interface CheckResult {
   name: string;
@@ -64,22 +65,89 @@ export async function doctor(): Promise<void> {
           });
         }
 
-        // Check for API keys
+        // Check for default model
+        if (config.defaultModel) {
+          const defaultModelConfig = config.models[config.defaultModel];
+          if (defaultModelConfig) {
+            checks.push({
+              name: 'Default model',
+              status: 'pass',
+              message: `"${config.defaultModel}" -> ${defaultModelConfig.model} (${defaultModelConfig.vendor})`
+            });
+            
+            // Check if default model's vendor is properly configured
+            const vendorConfig = getVendorConfig(config, defaultModelConfig.vendor);
+            if (defaultModelConfig.vendor === 'localhost') {
+              if (vendorConfig?.port) {
+                // Check if localhost is reachable
+                const port = vendorConfig.port;
+                const host = vendorConfig.host || 'localhost';
+                const reachable = await isLocalhostReachable(port, host);
+                checks.push({
+                  name: 'Default model vendor',
+                  status: reachable ? 'pass' : 'warn',
+                  message: reachable 
+                    ? `Localhost LLM reachable at ${host}:${port}`
+                    : `Localhost LLM not reachable at ${host}:${port}`
+                });
+              } else {
+                checks.push({
+                  name: 'Default model vendor',
+                  status: 'fail',
+                  message: `No port configured for localhost vendor`
+                });
+              }
+            } else if (vendorConfig?.apiKey) {
+              checks.push({
+                name: 'Default model vendor',
+                status: 'pass',
+                message: `API key configured for ${defaultModelConfig.vendor}`
+              });
+            } else {
+              checks.push({
+                name: 'Default model vendor',
+                status: 'fail',
+                message: `No API key configured for ${defaultModelConfig.vendor}`
+              });
+            }
+          } else {
+            checks.push({
+              name: 'Default model',
+              status: 'fail',
+              message: `Default model "${config.defaultModel}" not found in models config`
+            });
+          }
+        } else {
+          checks.push({
+            name: 'Default model',
+            status: 'warn',
+            message: 'No default model configured (will require --model flag)'
+          });
+        }
+
+        // Check for API keys (for non-localhost vendors)
         const vendorsWithKeys = Object.entries(config.vendors || {})
-          .filter(([_, v]) => v.apiKey && v.apiKey.length > 0)
+          .filter(([vendor, v]) => vendor !== 'localhost' && v.apiKey && v.apiKey.length > 0)
           .map(([k]) => k);
         
-        if (vendorsWithKeys.length > 0) {
+        // Check for localhost vendors with ports
+        const localhostVendors = Object.entries(config.vendors || {})
+          .filter(([vendor, v]) => vendor === 'localhost' && v.port)
+          .map(([k, v]) => `${k}:${v.port}`);
+        
+        const allConfigured = [...vendorsWithKeys, ...localhostVendors];
+        
+        if (allConfigured.length > 0) {
           checks.push({
-            name: 'API keys',
+            name: 'Vendor credentials',
             status: 'pass',
-            message: `Keys configured for: ${vendorsWithKeys.join(', ')}`
+            message: `Configured: ${allConfigured.join(', ')}`
           });
         } else {
           checks.push({
-            name: 'API keys',
+            name: 'Vendor credentials',
             status: 'fail',
-            message: 'No API keys configured'
+            message: 'No API keys or localhost ports configured'
           });
         }
       }

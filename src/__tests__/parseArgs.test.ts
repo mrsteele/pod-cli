@@ -1,10 +1,56 @@
 import { describe, it, expect } from 'vitest';
-import { parseArgs, buildPromptContent } from '../utils/parseArgs.js';
+import { parseArgs, buildPromptContent, parseSlugVersion } from '../utils/parseArgs.js';
+
+describe('parseSlugVersion', () => {
+  it('should return slug without version when no @ present', () => {
+    const result = parseSlugVersion('summarize');
+    expect(result.slug).toBe('summarize');
+    expect(result.version).toBeUndefined();
+  });
+
+  it('should parse version from slug@version format', () => {
+    const result = parseSlugVersion('summarize@2');
+    expect(result.slug).toBe('summarize');
+    expect(result.version).toBe(2);
+  });
+
+  it('should handle multi-digit versions', () => {
+    const result = parseSlugVersion('summarize@123');
+    expect(result.slug).toBe('summarize');
+    expect(result.version).toBe(123);
+  });
+
+  it('should treat invalid version as part of slug', () => {
+    const result = parseSlugVersion('summarize@abc');
+    expect(result.slug).toBe('summarize@abc');
+    expect(result.version).toBeUndefined();
+  });
+
+  it('should handle @ at the beginning', () => {
+    const result = parseSlugVersion('@mention');
+    expect(result.slug).toBe('@mention');
+    expect(result.version).toBeUndefined();
+  });
+
+  it('should use the last @ for version parsing', () => {
+    const result = parseSlugVersion('test@draft@2');
+    expect(result.slug).toBe('test@draft');
+    expect(result.version).toBe(2);
+  });
+});
 
 describe('parseArgs', () => {
   it('should parse slug', () => {
     const result = parseArgs(['summarize']);
     expect(result.slug).toBe('summarize');
+    expect(result.version).toBeUndefined();
+    expect(result.variables).toEqual({});
+  });
+
+  it('should parse slug with version', () => {
+    const result = parseArgs(['summarize@2']);
+    expect(result.slug).toBe('summarize');
+    expect(result.version).toBe(2);
     expect(result.variables).toEqual({});
   });
 
