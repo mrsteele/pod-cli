@@ -93,7 +93,7 @@ export async function run(options: RunOptions): Promise<void> {
   }
 
   if (verbose) {
-    console.error(chalk.dim(`Prompt: ${prompt.title} (v${prompt.version})`));
+    console.error(chalk.dim(`Prompt: ${prompt.slug} (v${prompt.version})`));
   }
 
   // Check for missing variables (warning only, they become empty strings)
