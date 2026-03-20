@@ -52,7 +52,7 @@ export async function run(options: RunOptions): Promise<void> {
   if (!config) {
     console.error(chalk.red('Error: No configuration found.'));
     console.error('');
-    console.error('Create a config file at ~/.pod/config.json');
+    console.error('Create a config file at ~/.promptodex/config.json');
     console.error('');
     console.error('Example:');
     console.error(chalk.dim(JSON.stringify({
