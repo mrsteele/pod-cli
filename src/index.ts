@@ -7,9 +7,12 @@
 import { Command } from 'commander';
 import chalk from 'chalk';
 import { run } from './commands/run.js';
-import { config } from './commands/config.js';
+import { showConfig } from './commands/show-config.js';
 import { doctor } from './commands/doctor.js';
 import { init } from './commands/init.js';
+import { configWizard } from './commands/config-wizard.js';
+import { install } from './commands/install.js';
+import { uninstall } from './commands/uninstall.js';
 import { parseArgs } from './utils/parseArgs.js';
 import { getCurrentVersion } from './utils/checkVersion.js';
 
@@ -20,16 +23,75 @@ async function main(): Promise<void> {
 
   program
     .name('pod')
-    .description('Promptodex CLI - Fetch and execute prompts from the registry\n\nUsage:\n  pod <slug>           Execute latest version of a prompt\n  pod <slug>@<version> Execute a specific version (e.g., pod summarize@2)')
+    .description('Promptodex CLI - Fetch and execute prompts from the registry')
     .version(version);
 
-  // Config command
+  // Init command - initializes a new project with promptodex.json
   program
-    .command('config')
-    .description('Display configuration information')
+    .command('init')
+    .description('Initialize a new project (creates promptodex.json)')
     .action(async () => {
       try {
-        await config();
+        await init();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`Error: ${message}`));
+        process.exit(1);
+      }
+    });
+
+  // Config command - interactive setup wizard
+  program
+    .command('config')
+    .description('Interactive setup wizard to configure API keys and models')
+    .action(async () => {
+      try {
+        await configWizard();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`Error: ${message}`));
+        process.exit(1);
+      }
+    });
+
+  // Show-config command - displays current configuration
+  program
+    .command('show-config')
+    .description('Display current configuration')
+    .action(async () => {
+      try {
+        await showConfig();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`Error: ${message}`));
+        process.exit(1);
+      }
+    });
+
+  // Install command
+  program
+    .command('install [name]')
+    .alias('i')
+    .description('Install prompt(s) from the registry')
+    .option('-v, --verbose', 'Show verbose output')
+    .action(async (name?: string, options?: { verbose?: boolean }) => {
+      try {
+        await install(name, { verbose: options?.verbose });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Unknown error';
+        console.error(chalk.red(`Error: ${message}`));
+        process.exit(1);
+      }
+    });
+
+  // Uninstall command
+  program
+    .command('uninstall <name>')
+    .description('Remove a prompt from the project')
+    .option('-v, --verbose', 'Show verbose output')
+    .action(async (name: string, options?: { verbose?: boolean }) => {
+      try {
+        await uninstall(name, { verbose: options?.verbose });
       } catch (error) {
         const message = error instanceof Error ? error.message : 'Unknown error';
         console.error(chalk.red(`Error: ${message}`));
@@ -51,18 +113,12 @@ async function main(): Promise<void> {
       }
     });
 
-  // Init command
+  // Help command (explicit for `pod help`)
   program
-    .command('init')
-    .description('Interactive setup wizard to configure the CLI')
-    .action(async () => {
-      try {
-        await init();
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Unknown error';
-        console.error(chalk.red(`Error: ${message}`));
-        process.exit(1);
-      }
+    .command('help')
+    .description('Display help information')
+    .action(() => {
+      program.help();
     });
 
   // Handle unknown commands as prompt slugs
@@ -80,7 +136,7 @@ async function main(): Promise<void> {
       }
 
       // Skip if it's a known command
-      const knownCommands = ['config', 'doctor', 'init', 'help'];
+      const knownCommands = ['init', 'config', 'show-config', 'install', 'i', 'uninstall', 'doctor', 'help'];
       if (knownCommands.includes(slug)) {
         return;
       }

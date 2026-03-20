@@ -14,14 +14,14 @@ import path from 'path';
 describe('getConfigDir', () => {
   it('should return path in home directory', () => {
     const result = getConfigDir();
-    expect(result).toBe(path.join(os.homedir(), '.pod'));
+    expect(result).toBe(path.join(os.homedir(), '.promptodex'));
   });
 });
 
 describe('getConfigPath', () => {
   it('should return config.json path', () => {
     const result = getConfigPath();
-    expect(result).toBe(path.join(os.homedir(), '.pod', 'config.json'));
+    expect(result).toBe(path.join(os.homedir(), '.promptodex', 'config.json'));
   });
 });
 

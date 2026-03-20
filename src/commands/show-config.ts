@@ -1,5 +1,5 @@
 /**
- * Config command for pod CLI
+ * Show-config command for pod CLI
  * Displays configuration information
  */
 
@@ -7,10 +7,10 @@ import chalk from 'chalk';
 import { getConfigPath, loadConfig, configExists, getDefaultConfig } from '../utils/config.js';
 
 /**
- * Execute the config command
+ * Execute the show-config command
  * Prints config location and contents
  */
-export async function config(): Promise<void> {
+export async function showConfig(): Promise<void> {
   const configPath = getConfigPath();
   
   console.log(chalk.bold('Configuration'));

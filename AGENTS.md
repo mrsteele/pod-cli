@@ -22,9 +22,12 @@ src/
 ├── index.ts              # CLI entry point (Commander-based)
 ├── commands/
 │   ├── run.ts            # Main command - execute prompts
-│   ├── config.ts         # Show configuration
-│   ├── doctor.ts         # Diagnostics
-│   └── init.ts           # Interactive setup wizard
+│   ├── show-config.ts    # Display configuration
+│   ├── config-wizard.ts  # Interactive setup wizard
+│   ├── init.ts           # Project initialization (promptodex.json)
+│   ├── install.ts        # Install prompts from registry
+│   ├── uninstall.ts      # Remove installed prompts
+│   └── doctor.ts         # Diagnostics
 ├── ai/
 │   ├── index.ts          # Unified AI interface
 │   ├── openai.ts         # OpenAI SDK integration
@@ -34,9 +37,10 @@ src/
 ├── registry/
 │   └── fetchPrompt.ts    # Promptodex API client
 └── utils/
-    ├── cache.ts          # Local prompt caching (~/.pod/cache)
+    ├── cache.ts          # Global prompt caching (~/.promptodex/cache)
+    ├── project.ts        # Project config (promptodex.json) and local cache
     ├── checkVersion.ts   # npm version checking
-    ├── config.ts         # Config file management (~/.pod/config.json)
+    ├── config.ts         # Global config management (~/.promptodex/config.json)
     ├── parseArgs.ts      # CLI argument parsing (including @version)
     ├── renderPrompt.ts   # Template rendering ({{variable}})
     └── resolveModel.ts   # Model resolution logic
@@ -50,14 +54,20 @@ src/
 | `bin/postinstall.js` | Postinstall setup script |
 | `src/index.ts` | CLI command definitions |
 | `src/commands/run.ts` | Core prompt execution logic |
-| `src/commands/init.ts` | Interactive setup wizard |
-| `src/utils/config.ts` | Config loading/validation |
+| `src/commands/config-wizard.ts` | Interactive setup wizard |
+| `src/commands/init.ts` | Project initialization |
+| `src/commands/install.ts` | Install prompts from registry |
+| `src/commands/uninstall.ts` | Remove installed prompts |
+| `src/utils/config.ts` | Global config loading/validation |
+| `src/utils/project.ts` | Project-level config and cache |
 | `src/utils/renderPrompt.ts` | `{{variable}}` template replacement |
 | `src/ai/localhost.ts` | Ollama/LMStudio localhost support |
 
 ## Configuration
 
-User config: `~/.pod/config.json`
+### Global Config
+
+User config: `~/.promptodex/config.json`
 
 ```json
 {
@@ -80,6 +90,21 @@ User config: `~/.pod/config.json`
 
 The `apiKey` at the root level is optional and used to authenticate with promptodex.com to access private prompts.
 
+### Project Config
+
+Project config: `./promptodex.json` (created by `pod init`)
+
+```json
+{
+  "prompts": {
+    "summarize": "2",
+    "translate": "1"
+  }
+}
+```
+
+Installed prompts are cached in `.promptodex/cache/{slug}/{version}/data.json`.
+
 ## Commands
 
 | Command | Description |
@@ -88,8 +113,11 @@ The `apiKey` at the root level is optional and used to authenticate with prompto
 | `pod <slug>@<version>` | Execute a specific version of a prompt |
 | `pod <slug> --variable value` | Pass template variables |
 | `pod <slug> --model alias` | Override model |
-| `pod init` | Interactive setup wizard |
-| `pod config` | Show configuration |
+| `pod init` | Initialize project (creates promptodex.json) |
+| `pod install [name]` | Install prompt(s) from registry |
+| `pod uninstall <name>` | Remove an installed prompt |
+| `pod config` | Interactive setup wizard |
+| `pod show-config` | Display configuration |
 | `pod doctor` | Run diagnostics |
 
 ## Dependencies
@@ -139,8 +167,9 @@ npm test         # Run tests
 - Version syntax: `slug@version` (e.g., `summary@2` fetches version 2)
 - Missing variables become empty strings (not errors)
 - Stdin content is appended to the rendered prompt
-- Prompts are cached by version: `~/.pod/cache/{slug}/{version}.json`
-- Version check runs once per day (cached at `~/.pod/.version-check`)
+- Global prompts are cached by version: `~/.promptodex/cache/{slug}/{version}.json`
+- Project prompts are cached in: `.promptodex/cache/{slug}/{version}/data.json`
+- Version check runs once per day (cached at `~/.promptodex/.version-check`)
 - Supported vendors: `openai`, `anthropic`, `xai`, `localhost`
 - Localhost vendors (Ollama, LMStudio) use port config instead of API key
 

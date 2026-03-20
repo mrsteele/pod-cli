@@ -29,7 +29,7 @@ export interface PodConfig {
  * Get the path to the pod config directory
  */
 export function getConfigDir(): string {
-  return path.join(os.homedir(), '.pod');
+  return path.join(os.homedir(), '.promptodex');
 }
 
 /**

@@ -11,7 +11,8 @@ The official CLI for prompts registered on [Promptodex](https://promptodex.com) 
 - **Render templates** with variables
 - **Execute prompts** against configured AI models
 - **Print output** to stdout
-- **Cache prompts** locally for faster access
+- **Project-level prompt management** with `promptodex.json`
+- **Local caching** for faster access
 - **Interactive setup** wizard for easy configuration
 
 ## Installation
@@ -28,13 +29,15 @@ npx pod-cli summarize
 
 ## Quick Start
 
-1. Run the setup wizard:
+### 1. Configure your API keys
+
+Run the setup wizard:
 
 ```bash
-pod init
+pod config
 ```
 
-Or create a config file manually at `~/.pod/config.json`:
+Or create a config file manually at `~/.promptodex/config.json`:
 
 ```json
 {
@@ -68,7 +71,21 @@ Or create a config file manually at `~/.pod/config.json`:
 }
 ```
 
-2. Run a prompt:
+### 2. Initialize a project (optional)
+
+```bash
+pod init
+```
+
+This creates a `promptodex.json` file for managing project-level prompts.
+
+### 3. Install prompts
+
+```bash
+pod install summarize
+```
+
+### 4. Run a prompt
 
 ```bash
 pod summarize
@@ -131,7 +148,7 @@ pod summarize --model sonnet
 ### View configuration
 
 ```bash
-pod config
+pod show-config
 ```
 
 ### Run diagnostics
@@ -145,14 +162,14 @@ pod doctor
 Run the setup wizard to configure your vendors and models:
 
 ```bash
-pod init
+pod config
 ```
 
 This will walk you through selecting a vendor, entering API keys (or port for localhost), and choosing a default model.
 
 ## Configuration
 
-The config file is located at `~/.pod/config.json`.
+The global config file is located at `~/.promptodex/config.json`.
 
 ### Structure
 
@@ -231,12 +248,33 @@ pod summarize --topic "AI"       # Pass variables
 
 ### `pod init`
 
+Initialize a new project in the current directory:
+- Creates `promptodex.json` to track installed prompts
+- Adds `.promptodex/` to `.gitignore` (if present)
+
+### `pod install [name]` or `pod i [name]`
+
+Install prompts from the registry:
+- `pod install summarize` - Install a specific prompt (latest version)
+- `pod install summarize@2` - Install a specific version
+- `pod install` - Install all prompts listed in `promptodex.json`
+
+Prompts are cached in `.promptodex/cache/` and version-locked in `promptodex.json`.
+
+### `pod uninstall <name>`
+
+Remove a prompt from the project:
+- Removes from `promptodex.json`
+- Cleans up cached files in `.promptodex/cache/`
+
+### `pod config`
+
 Interactive setup wizard to configure:
 - Preferred AI vendor (OpenAI, Anthropic, xAI, localhost)
 - API key or port
 - Default model
 
-### `pod config`
+### `pod show-config`
 
 Display configuration information including:
 - Config file location
@@ -273,14 +311,33 @@ cat article.md | pod my-prompt --topic "machine learning"
 
 ## Cache
 
-Prompts are cached locally at `~/.pod/cache/`.
+### Global Cache
+
+When running prompts directly (without `pod install`), prompts are cached globally at `~/.promptodex/cache/`.
 
 Structure:
 ```
-~/.pod/cache/{slug}/{version}.json
+~/.promptodex/cache/{slug}/{version}.json
 ```
 
-The CLI checks the registry for the latest version and uses the cache if the version matches.
+### Project Cache
+
+When using `pod install`, prompts are cached locally in your project at `.promptodex/cache/`.
+
+Structure:
+```
+.promptodex/cache/{slug}/{version}/data.json
+```
+
+The project's `promptodex.json` tracks which prompts are installed:
+```json
+{
+  "prompts": {
+    "summarize": "2",
+    "translate": "1"
+  }
+}
+```
 
 ## Supported Providers
 
