@@ -121,39 +121,44 @@ async function askModel(
   console.log('');
   console.log('Select your preferred model:');
   
-  const options = [...models, 'Other (enter custom model)'];
-  
-  // Find default index if current model is in the list
-  let defaultIndex = currentModel ? models.indexOf(currentModel) : 0;
-  if (defaultIndex === -1) defaultIndex = 0;
-  
+  let options = [...models];
+  let defaultIndex = 0;
+  // If currentModel is set and not in the list, add it to the front
+  if (currentModel && !models.includes(currentModel)) {
+    options = [currentModel, ...models];
+    defaultIndex = 0;
+  } else if (currentModel) {
+    defaultIndex = options.indexOf(currentModel);
+  }
+  options.push('Other (enter custom model)');
+
   options.forEach((opt, i) => {
     const marker = defaultIndex === i ? chalk.cyan(' (default)') : '';
     const current = currentModel === opt ? chalk.dim(' <- current') : '';
     console.log(`  ${i + 1}. ${opt}${marker}${current}`);
   });
-  
+
   const defaultHint = ` [${defaultIndex + 1}]`;
   const answer = await rl.question(`Enter choice${defaultHint}: `);
-  
+
   if (!answer.trim()) {
-    return models[defaultIndex];
+    return options[defaultIndex];
   }
-  
+
   const choice = parseInt(answer, 10);
-  
+
   if (isNaN(choice) || choice < 1 || choice > options.length) {
     console.log(chalk.yellow('Invalid choice, please try again.'));
     return askModel(rl, models, currentModel);
   }
-  
+
   // If they selected "Other"
   if (choice === options.length) {
     const customModel = await rl.question('Enter custom model name: ');
-    return customModel.trim() || models[0];
+    return customModel.trim() || options[defaultIndex];
   }
-  
-  return models[choice - 1];
+
+  return options[choice - 1];
 }
 
 /**
