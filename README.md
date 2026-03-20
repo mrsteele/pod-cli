@@ -326,7 +326,7 @@ When using `pod install`, prompts are cached locally in your project at `.prompt
 
 Structure:
 ```
-.promptodex/cache/{slug}/{version}/data.json
+.promptodex/cache/{slug}/{version}.json
 ```
 
 The project's `promptodex.json` tracks which prompts are installed:

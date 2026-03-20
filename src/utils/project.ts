@@ -28,7 +28,7 @@ export function getLocalCacheDir(): string {
  * Get the cache path for a specific prompt version
  */
 export function getLocalCachePath(slug: string, version: string): string {
-  return path.join(getLocalCacheDir(), 'cache', slug, version, 'data.json');
+  return path.join(getLocalCacheDir(), 'cache', slug, `${version}.json`);
 }
 
 /**

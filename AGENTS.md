@@ -103,7 +103,7 @@ Project config: `./promptodex.json` (created by `pod init`)
 }
 ```
 
-Installed prompts are cached in `.promptodex/cache/{slug}/{version}/data.json`.
+Installed prompts are cached in `.promptodex/cache/{slug}/{version}.json`.
 
 ## Commands
 
@@ -168,7 +168,7 @@ npm test         # Run tests
 - Missing variables become empty strings (not errors)
 - Stdin content is appended to the rendered prompt
 - Global prompts are cached by version: `~/.promptodex/cache/{slug}/{version}.json`
-- Project prompts are cached in: `.promptodex/cache/{slug}/{version}/data.json`
+- Project prompts are cached in: `.promptodex/cache/{slug}/{version}.json`
 - Version check runs once per day (cached at `~/.promptodex/.version-check`)
 - Supported vendors: `openai`, `anthropic`, `xai`, `localhost`
 - Localhost vendors (Ollama, LMStudio) use port config instead of API key
