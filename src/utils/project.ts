@@ -162,29 +162,27 @@ export async function removeLocalCache(slug: string, version?: string): Promise<
  */
 export async function updateGitignore(): Promise<boolean> {
   const gitignorePath = path.join(process.cwd(), '.gitignore');
-  
-  if (!(await fs.pathExists(gitignorePath))) {
-    return false;
+  let content = '';
+  let exists = await fs.pathExists(gitignorePath);
+  if (exists) {
+    content = await fs.readFile(gitignorePath, 'utf-8');
+    const lines = content.split('\n');
+    // Check if .promptodex is already ignored
+    const alreadyIgnored = lines.some(line => {
+      const trimmed = line.trim();
+      return trimmed === '.promptodex' || trimmed === '.promptodex/' || trimmed === '/.promptodex' || trimmed === '/.promptodex/';
+    });
+    if (alreadyIgnored) {
+      return false;
+    }
+    // Append .promptodex to gitignore
+    content = content.endsWith('\n') 
+      ? content + '.promptodex/\n'
+      : content + '\n.promptodex/\n';
+  } else {
+    // Create new .gitignore with .promptodex/
+    content = '.promptodex/\n';
   }
-  
-  const content = await fs.readFile(gitignorePath, 'utf-8');
-  const lines = content.split('\n');
-  
-  // Check if .promptodex is already ignored
-  const alreadyIgnored = lines.some(line => {
-    const trimmed = line.trim();
-    return trimmed === '.promptodex' || trimmed === '.promptodex/' || trimmed === '/.promptodex' || trimmed === '/.promptodex/';
-  });
-  
-  if (alreadyIgnored) {
-    return false;
-  }
-  
-  // Append .promptodex to gitignore
-  const newContent = content.endsWith('\n') 
-    ? content + '.promptodex/\n'
-    : content + '\n.promptodex/\n';
-  
-  await fs.writeFile(gitignorePath, newContent);
+  await fs.writeFile(gitignorePath, content);
   return true;
 }
