@@ -6,13 +6,14 @@
 import fs from 'fs-extra';
 import path from 'path';
 import { getConfigDir } from './config.js';
+import type { ApiVariable } from './variables.js';
 
 export interface CachedPrompt {
   slug: string;
   title: string;
   description: string | null;
   content: string;
-  variables: string[];
+  variables: ApiVariable[];
   version: number;
   model: {
     id: string;

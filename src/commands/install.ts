@@ -14,8 +14,14 @@ import {
 } from '../utils/project.js';
 import { parseSlugVersion } from '../utils/parseArgs.js';
 
-interface InstallOptions {
+export interface InstallOptions {
   verbose?: boolean;
+}
+
+export interface InstallResult {
+  slug: string;
+  version: number;
+  prompt: RegistryPrompt;
 }
 
 /**
@@ -39,32 +45,34 @@ function parseInstallArg(arg: string): { slug: string; version?: number } {
 }
 
 /**
- * Install a single prompt
+ * Install a single prompt. Returns the fetched prompt (including its
+ * registry metadata) on success, or `null` on failure. Errors are
+ * printed directly so batch callers can keep going.
  */
-async function installPrompt(
+export async function installPrompt(
   slug: string,
   version: number | undefined,
   apiKey: string | undefined,
-  options: InstallOptions
-): Promise<{ slug: string; version: number } | null> {
+  options: InstallOptions = {}
+): Promise<InstallResult | null> {
   const versionStr = version !== undefined ? `@${version}` : '';
-  
+
   if (options.verbose) {
     console.log(chalk.dim(`Fetching ${slug}${versionStr}...`));
   }
-  
+
   try {
     const prompt = await fetchPromptFromRegistry(slug, version, apiKey);
-    
+
     // Cache locally
     await cachePromptLocally(slug, prompt.version.toString(), prompt);
-    
+
     // Update project config
     await addPromptToProject(slug, prompt.version.toString());
-    
+
     console.log(chalk.green(`✓ ${slug}@${prompt.version}`));
-    
-    return { slug, version: prompt.version };
+
+    return { slug, version: prompt.version, prompt };
   } catch (error) {
     const message = error instanceof Error ? error.message : 'Unknown error';
     console.error(chalk.red(`✗ ${slug}${versionStr}: ${message}`));

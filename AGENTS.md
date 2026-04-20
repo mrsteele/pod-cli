@@ -25,9 +25,11 @@ src/
 │   ├── show-config.ts    # Display configuration
 │   ├── config-wizard.ts  # Interactive setup wizard
 │   ├── init.ts           # Project initialization (promptodex.json)
-│   ├── install.ts        # Install prompts from registry
-│   ├── uninstall.ts      # Remove installed prompts
-│   └── doctor.ts         # Diagnostics
+│   ├── install.ts        # Install prompts from registry (exports installPrompt)
+│   ├── uninstall.ts      # Remove installed prompts (also cleans skill artifacts)
+│   ├── skill.ts          # Skill install/rebuild/compile + doctor skills
+│   ├── collection.ts     # Collection install + collection-as-skill install
+│   └── doctor.ts         # Diagnostics (dispatches to doctor skills)
 ├── ai/
 │   ├── index.ts          # Unified AI interface
 │   ├── openai.ts         # OpenAI SDK integration
@@ -35,10 +37,13 @@ src/
 │   ├── xai.ts            # xAI (Grok) integration
 │   └── localhost.ts      # Ollama/LMStudio integration
 ├── registry/
-│   └── fetchPrompt.ts    # Promptodex API client
+│   ├── fetchPrompt.ts    # Promptodex prompt API client
+│   └── fetchCollection.ts# Promptodex collection API client
 └── utils/
     ├── cache.ts          # Global prompt caching (~/.promptodex/cache)
     ├── project.ts        # Project config (promptodex.json) and local cache
+    ├── skill.ts          # Skill filesystem helpers (data + skills/ output)
+    ├── variables.ts      # Normalize API variable shapes + required/optional analysis
     ├── checkVersion.ts   # npm version checking
     ├── config.ts         # Global config management (~/.promptodex/config.json)
     ├── parseArgs.ts      # CLI argument parsing (including @version)
@@ -115,10 +120,15 @@ Installed prompts are cached in `.promptodex/cache/{slug}/{version}.json`.
 | `pod <slug> --model alias` | Override model |
 | `pod init` | Initialize project (creates promptodex.json) |
 | `pod install [name]` | Install prompt(s) from registry |
-| `pod uninstall <name>` | Remove an installed prompt |
+| `pod uninstall <name>` | Remove an installed prompt (and any skill artifacts) |
+| `pod skill install <slug> [--var value]` | Install + compile a prompt as a skill (`skills/<slug>.md`) |
+| `pod skill rebuild <slug>` | Rebuild a skill from the latest prompt version |
+| `pod collection install <slug>` | Install every prompt in a collection |
+| `pod collection skill install <slug> [--var value]` | Install and compile every prompt in a collection |
+| `pod doctor` | Run diagnostics |
+| `pod doctor skills` | Validate installed skills' variables |
 | `pod config` | Interactive setup wizard |
 | `pod show-config` | Display configuration |
-| `pod doctor` | Run diagnostics |
 
 ## Dependencies
 
@@ -142,6 +152,9 @@ Test files:
 - `parseArgs.test.ts` - CLI argument parsing
 - `resolveModel.test.ts` - Model resolution logic
 - `config.test.ts` - Configuration utilities
+- `variables.test.ts` - API variable normalization + required/optional analysis
+- `fetchCollection.test.ts` - Collection item parsing
+- `skill.test.ts` - Skill compilation (writes `skills/<slug>.md`, persists config)
 
 Tests run automatically on every push to `main` via GitHub Actions (`.github/workflows/ci.yml`).
 

@@ -9,6 +9,7 @@ import { isCacheWritable, getCacheDir } from '../utils/cache.js';
 import { isRegistryReachable, getRegistryUrl } from '../registry/fetchPrompt.js';
 import { getCurrentVersion } from '../utils/checkVersion.js';
 import { isReachable as isLocalhostReachable } from '../ai/localhost.js';
+import { doctorSkills } from './skill.js';
 
 interface CheckResult {
   name: string;
@@ -19,8 +20,21 @@ interface CheckResult {
 /**
  * Execute the doctor command
  * Runs diagnostic checks
+ *
+ * Subcommands:
+ *   - `skills`: scan installed skills for missing variables
  */
-export async function doctor(): Promise<void> {
+export async function doctor(subcommand?: string): Promise<void> {
+  if (subcommand === 'skills') {
+    await doctorSkills();
+    return;
+  }
+
+  if (subcommand && subcommand.length > 0) {
+    console.error(chalk.red(`Unknown doctor subcommand: ${subcommand}`));
+    console.error('Available: ' + chalk.cyan('pod doctor skills'));
+    process.exit(1);
+  }
   console.log(chalk.bold('pod doctor'));
   console.log('');
   console.log('Running diagnostics...');

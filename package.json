@@ -29,7 +29,7 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/promptodex/pod-cli.git"
+    "url": "https://github.com/mrsteele/pod-cli.git"
   },
   "engines": {
     "node": ">=18"

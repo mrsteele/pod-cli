@@ -266,6 +266,39 @@ Prompts are cached in `.promptodex/cache/` and version-locked in `promptodex.jso
 Remove a prompt from the project:
 - Removes from `promptodex.json`
 - Cleans up cached files in `.promptodex/cache/`
+- Removes any compiled skill artifacts (`.promptodex/data/<slug>/` and `skills/<slug>.md`)
+
+### `pod skill install <slug>` or `pod skill i <slug>`
+
+Install a prompt and compile it into a reusable skill file.
+
+Options:
+- `--<variable> <value>` - Set template variables (persisted to `.promptodex/data/<slug>/config.json`)
+- `-v, --verbose` - Show verbose output
+
+What it does:
+1. Installs the prompt (same as `pod install <slug>`).
+2. Persists the provided variables at `.promptodex/data/<slug>/config.json` along with the pinned version.
+3. Renders the prompt template using the merged variables and writes the result to `skills/<slug>.md`.
+4. Warns on missing optional variables and errors on missing required variables. Required vars can be populated by editing the generated `config.json` or running `pod doctor skills`.
+
+Example:
+```bash
+pod skill install greet --name Matt
+# → skills/greet.md
+```
+
+### `pod skill rebuild <slug>`
+
+Re-fetch the latest version of an installed skill's prompt, preserve any existing variable values, and recompile `skills/<slug>.md`. Warns when the new version introduces required variables that are not yet set.
+
+### `pod collection install <slug>` or `pod collection i <slug>`
+
+Install every prompt contained in a collection. Items pinned to a specific version in the collection install that version; items with an empty version (`""`) always install the latest.
+
+### `pod collection skill install <slug>` or `pod collection skill i <slug>`
+
+Install every prompt in a collection **and** compile each one as a skill. Any `--var value` flags are applied to every prompt (variables a prompt doesn't declare are ignored). A batch report summarises the `ok / warning / error` status of each compiled skill.
 
 ### `pod config`
 
@@ -287,6 +320,13 @@ Run diagnostic checks:
 - API keys are configured
 - Registry is reachable
 - Cache directory is writable
+
+### `pod doctor skills`
+
+Scan every installed skill and report variable coverage against the prompt version pinned in each skill's `config.json`:
+- `ok` – all required and optional variables are satisfied (either explicitly or via defaults)
+- `warning` – one or more optional variables are missing
+- `error` – one or more required variables are missing (exits non-zero)
 
 ## Template Variables
 

@@ -4,6 +4,7 @@
  */
 
 import { getCachedPrompt, cachePrompt, CachedPrompt } from '../utils/cache.js';
+import type { ApiVariable } from '../utils/variables.js';
 
 const REGISTRY_BASE_URL = 'https://www.promptodex.com/api/v1';
 
@@ -23,7 +24,7 @@ export interface RegistryPrompt {
   title: string;
   description: string | null;
   content: string;
-  variables: string[];
+  variables: ApiVariable[];
   author: PromptAuthor;
   tags: string[];
   version: number;

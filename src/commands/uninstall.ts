@@ -10,6 +10,7 @@ import {
   removePromptFromProject,
   removeLocalCache
 } from '../utils/project.js';
+import { removeSkill } from '../utils/skill.js';
 
 interface UninstallOptions {
   verbose?: boolean;
@@ -81,6 +82,9 @@ export async function uninstall(name: string, options: UninstallOptions = {}): P
   
   // Remove from local cache
   await removeLocalCache(parsed.slug, parsed.version);
-  
+
+  // Remove any compiled skill artifacts (data/config + skills/<slug>.md)
+  await removeSkill(parsed.slug);
+
   console.log(chalk.green(`✓ Uninstalled ${parsed.slug}@${installedVersion}`));
 }
